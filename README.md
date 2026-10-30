@@ -87,9 +87,7 @@ take 10 distinct values per layer.
 The v3/v4 failures were optimization pathologies, not capacity limits. That
 distinction is the interesting part.
 
-## Prior art
 
-*(Add citations here after verifying them — see the note in the commit history.)*
 
 ## License
 
