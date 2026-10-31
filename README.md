@@ -181,14 +181,44 @@ compression-losing extension to N=100.
 - 3 seeds is the minimum for a directional claim, not a full statistical one.
   Wider seed sweeps would tighten the variance estimates.
 
-### Next experiment
+### Seed verification
 
-The clean N=50 result (2.67x) is the strongest claim in the repo. The natural
-next step is a **N=50 seed sweep** to confirm the compression win survives
-seeds, not just the N=100 capacity limit.
+The two clean-win claims — crossover at N=20 and 2.67x compression at N=50 —
+were verified across 3 seeds (42, 0, 1):
 
-See `conditional_oracle.py` (mechanism), `scaling_experiment.py` (N=4 to 100),
-`capacity_test.py` (single-seed N=100), and `seed_sweep.py` (this table).
+| N | gen_h | ratio | seeds solved | robustness |
+|---|-------|-------|--------------|------------|
+| 20 | 8 | 1.54x smaller | 3/3 × 20/20 | **robust** |
+| 50 | 8 | 2.67x smaller | 3/3 × 50/50 | **robust** |
+
+No single-seed fragility remains in the headline results. The N=100 boundary
+(reported above) is the only untested-at-wider-seed regime, and it is already
+characterized as a compression-losing extension rather than a win.
+
+### What this is (updated summary)
+
+A working demonstration that conditional zero-map weight generation has a
+**measured, seed-verified crossover**: below N=20 tasks, separate models are
+cheaper; above N=20, the generator wins, and the win grows to 2.67x at N=50
+with all 50 tasks solved on all 3 tested seeds.
+
+### What this is not (updated summary)
+
+- Not a transformer replacement. 50 boolean tasks is not language.
+- Not a claim about N > 50. The technique loses compression advantage at N=100.
+- Not a claim of novel invention. The Zero-Map principle is described in the
+  preprints cited below. This repository is a runnable, seed-verified instance.
+
+### Reproducibility
+
+Every claim in this README is backed by committed code that reproduces the
+reported table:
+
+- `conditional_oracle.py` — Stage 1 mechanism (4 tasks)
+- `scaling_experiment.py` — N=4 to 100 scaling
+- `capacity_test.py` — N=100 single-seed (kept for provenance)
+- `seed_sweep.py` — N=100 3-seed sweep (corrected the non-monotonicity claim)
+- `seed_sweep_n50.py` — N=20 & N=50 3-seed verification (this table)
 
 ## License
 
