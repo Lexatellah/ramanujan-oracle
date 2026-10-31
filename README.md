@@ -87,6 +87,20 @@ take 10 distinct values per layer.
 The v3/v4 failures were optimization pathologies, not capacity limits. That
 distinction is the interesting part.
 
+## Stage 1 — Conditional Zero-Map Weight Generation
+
+One 418-parameter generator, conditioned on a task ID, produced working
+weight sets for four tasks: XOR, AND, OR, and 3-bit parity. All at 100%.
+
+- Target network per task: 1,024 synthesized weights from the digits of 1/pi
+- Generator: task ID -> 42 meta-parameters -> synthesized network
+- **Unexpected:** 3-bit parity succeeded. The 10-distinct-values-per-layer
+  substrate is more expressive than expected when conditioned.
+- **Honest weakness:** at 4 tasks, the generator (418 params) costs more than
+  4 separate 42-param models (168 params). The crossover is at N ~= 10 tasks;
+  the scaling experiment is next.
+
+See `conditional_oracle.py` for the full implementation.
 
 
 ## License
