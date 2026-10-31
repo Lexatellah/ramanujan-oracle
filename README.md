@@ -137,13 +137,55 @@ parameters while solving up to 50 tasks perfectly.
 - Not a capacity claim beyond N=100. The substrate hits its limit at
   approximately 100 tasks with 8 generator hidden units.
 
+### Capacity test at N=100 — three generator widths
+
+The N=100 failure at gen_h=8 (98/100) was probed by widening the generator.
+
+| gen_h | gen_params | ratio vs 100 separate | solved | min_acc |
+|-------|------------|----------------------|--------|---------|
+| 8     | 1186       | 3.54x smaller        | 98/100 | 75.0%   |
+| 16    | 2330       | 1.80x smaller        | **95/100** | 62.5% |
+| 32    | 4618       | **0.91x — larger**   | 100/100 | 100.0% |
+
+Three honest observations:
+
+1. **Non-monotonic scaling.** Widening from 8 to 16 hidden units produced
+   *worse* results (98 -> 95 solved). This is not a capacity ceiling — it is
+   an optimization pathology in the two-layer MLP generator. More width is
+   not monotonically better at this task count.
+2. **"Solved" is not a win.** gen_h=32 solves 100/100, but requires 4618
+   parameters — more than 100 separate 42-param models (4200). The generator
+   lost the compression advantage it had at smaller gen_h.
+3. **The strongest clean claim remains N=50** — 50/50 solved, generator 2.67x
+   smaller than 50 separate models. N=100 is where the current architecture
+   breaks down, in a way that is neither a clean capacity ceiling nor a
+   substrate ceiling.
+
+### What this is
+
+A working demonstration that conditional zero-map weight generation scales
+cleanly to N=50 (2.67x compression, 50/50 solved), with a documented breakdown
+at N=100 that is architecture-specific rather than fundamental.
+
+### What this is not
+
+- Not a transformer replacement. 50-100 boolean tasks is not language.
+- Not a capacity or substrate ceiling claim. The N=100 regression at gen_h=16
+  suggests optimization pathology, not a hard limit. Not yet distinguished.
+- Single-seed results. The 98 -> 95 non-monotonicity needs replication across
+  seeds before being called a robust phenomenon.
+
 ### Next experiment
 
-Increase generator hidden size from 8 to 16 and re-run N=100. If 98/100
-becomes 100/100, the limit is generator capacity (fixable). If it stays at
-98/100, the substrate has a real ceiling (a stronger finding).
+Seed sweep: run gen_h in {8, 16, 32} at N=100 with 3 seeds each. If
+gen_h=16 is consistently worse than gen_h=8 across seeds, the non-monotonicity
+is a real architectural finding. If it's seed noise, the clean N=100 result
+likely needs a different generator architecture (residual connection, layer
+norm, or a wider-but-shallower MLP).
 
-See `conditional_oracle.py` (mechanism) and `scaling_experiment.py` (scaling).
+See `conditional_oracle.py` (mechanism), `scaling_experiment.py` (scaling),
+and `capacity_test.py` (this table).
+
 
 ## License
 
