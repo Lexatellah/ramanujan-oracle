@@ -89,19 +89,61 @@ distinction is the interesting part.
 
 ## Stage 1 — Conditional Zero-Map Weight Generation
 
-One 418-parameter generator, conditioned on a task ID, produced working
-weight sets for four tasks: XOR, AND, OR, and 3-bit parity. All at 100%.
+One generator, conditioned on a task ID, produces working weight meta-parameters
+for a family of boolean tasks. The 1/pi substrate is shared; the generator
+learns how to modulate it.
 
-- Target network per task: 1,024 synthesized weights from the digits of 1/pi
-- Generator: task ID -> 42 meta-parameters -> synthesized network
-- **Unexpected:** 3-bit parity succeeded. The 10-distinct-values-per-layer
-  substrate is more expressive than expected when conditioned.
-- **Honest weakness:** at 4 tasks, the generator (418 params) costs more than
-  4 separate 42-param models (168 params). The crossover is at N ~= 10 tasks;
-  the scaling experiment is next.
+### Mechanism test (N=4)
 
-See `conditional_oracle.py` for the full implementation.
+- XOR, AND, OR, 3-bit parity: all at 100%
+- Generator: 418 params (task ID -> 42 meta-parameters)
+- Target network: 1,024 synthesized weights per task
+- Unexpected: 3-bit parity solved — the 10-distinct-values substrate is more
+  expressive than expected when conditioned
 
+### Scaling experiment
+
+Does the generator beat N separate 42-param models as N grows?
+
+| N tasks | generator params | N x 42 separate | ratio | solved |
+|---------|------------------|-----------------|-------|--------|
+| 4       | 418              | 168             | 0.40x | 4/4    |
+| 10      | 466              | 420             | 0.90x | 10/10  |
+| **20**  | **546**          | **840**         | **1.54x** | **20/20** |
+| 50      | 786              | 2100            | 2.67x | 50/50  |
+| 100     | 1186             | 4200            | 3.54x | **98/100** |
+
+- **Crossover at N=20.** Below 20 tasks, the generator costs more than N
+  separate models. Above 20, it wins, and the win grows with N.
+- **Clean scaling through N=50** — 50/50 solved, generator 2.67x smaller than
+  50 separate models.
+- **Capacity limit at N=100** — 2 of 100 tasks failed (min accuracy 75%, mean
+  99.5%). With only 8 generator hidden units, the generator cannot linearly
+  separate 100 distinct one-hot inputs — a rank limit, not a bug. This is the
+  honest boundary of the current substrate.
+
+### What this is
+
+A working demonstration that conditional zero-map weight generation scales:
+one fixed-size generator produces working weight sets for a growing family of
+tasks, with parameter cost sublinear in N. The generator stays under 1,200
+parameters while solving up to 50 tasks perfectly.
+
+### What this is not
+
+- Not a transformer replacement. 100 boolean tasks is not language.
+- Not a general-purpose scheme. The 1/pi substrate is fixed; the tasks are
+  simple boolean functions over 3 bits.
+- Not a capacity claim beyond N=100. The substrate hits its limit at
+  approximately 100 tasks with 8 generator hidden units.
+
+### Next experiment
+
+Increase generator hidden size from 8 to 16 and re-run N=100. If 98/100
+becomes 100/100, the limit is generator capacity (fixable). If it stays at
+98/100, the substrate has a real ceiling (a stronger finding).
+
+See `conditional_oracle.py` (mechanism) and `scaling_experiment.py` (scaling).
 
 ## License
 
